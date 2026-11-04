@@ -109,7 +109,7 @@ git clone URL_DU_DEPOT
 
 Étape 2 : Accéder au dossier
 
-cd money-track
+cd moneytrack
 
 Étape 3 : Installer les dépendances
 
@@ -261,6 +261,24 @@ Mot de passe	À communiquer de manière sécurisée
 * [ ]	Application déployée sur Vercel.
 * [ ]	Documentation et compte de démonstration complétés.
 
+## Répartition opérationnelle des pages
+
+Chaque membre est responsable du développement des pages qui lui sont attribuées.
+
+| Responsable | Pages | Fonctionnalités |
+|---|---|---|
+| Membre 1 — Team Lead | dashboard, budgets | Tableau de bord et gestion des budgets |
+| Membre 2 — Repository Admin | transactions | Gestion des revenus et dépenses |
+| Membre 3 | login, register, profil | Authentification et profil utilisateur |
+| Membre 4 | accueil, conseils | Pages publiques et navigation |
+| Membre 5 | categories, statistiques | Gestion des catégories et statistiques |
+
+### Consignes
+- Chaque membre travaille sur sa propre branche Git.
+- Ne pas modifier les fichiers attribués à un autre membre sans coordination.
+- Respecter l'architecture existante du projet.
+- Les pages doivent être développées conformément aux maquettes de l'équipe.
+- Toute modification doit être proposée via une Pull Request vers `develop`.
 ⸻
 
 MoneyTrack – Une meilleure gestion de vos finances, un pas vers une meilleure maîtrise de votre avenir.
