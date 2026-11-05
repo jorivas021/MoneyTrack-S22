@@ -10,22 +10,68 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const currentDate = new Date();
+  const periodParam = searchParams.get("period");
+  const period = periodParam === null ? null : Number(periodParam);
 
-  const year = Number(searchParams.get("year") || currentDate.getFullYear());
+  if (period !== null && period !== 6 && period !== 12) {
+    return NextResponse.json(
+      { error: "La période doit être de 6 ou 12 mois." },
+      { status: 400 }
+    );
+  }
 
-  if (!Number.isInteger(year) || year < 2020 || year > 2100) {
+  const requestedYear = Number(
+    searchParams.get("year") || currentDate.getUTCFullYear()
+  );
+
+  if (
+    period === null &&
+    (!Number.isInteger(requestedYear) || requestedYear < 2020 || requestedYear > 2100)
+  ) {
     return NextResponse.json(
       { error: "Année invalide." },
       { status: 400 }
     );
   }
 
+  const startDate =
+    period === null
+      ? new Date(Date.UTC(requestedYear, 0, 1))
+      : new Date(
+          Date.UTC(
+            currentDate.getUTCFullYear(),
+            currentDate.getUTCMonth() - period + 1,
+            1
+          )
+        );
+  const endDate =
+    period === null
+      ? new Date(Date.UTC(requestedYear + 1, 0, 1))
+      : new Date(
+          Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth() + 1, 1)
+        );
+  const monthlyData = Array.from({ length: period ?? 12 }, (_, index) => {
+    const date = new Date(
+      Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth() + index, 1)
+    );
+
+    return {
+      year: date.getUTCFullYear(),
+      month: date.getUTCMonth() + 1,
+      income: 0,
+      expense: 0,
+    };
+  });
+  const monthIndexes = new Map(
+    monthlyData.map((item, index) => [`${item.year}-${item.month}`, index])
+  );
+
   const transactions = await prisma.transaction.findMany({
     where: {
       userId: userId!,
       date: {
-        gte: new Date(Date.UTC(year, 0, 1)),
-        lt: new Date(Date.UTC(year + 1, 0, 1)),
+        gte: startDate,
+        lt: endDate,
       },
     },
     include: { category: true },
@@ -35,41 +81,43 @@ export async function GET(request: Request) {
   let income = 0;
   let expense = 0;
 
-  const monthlyData = Array.from({ length: 12 }, (_, index) => ({
-    month: index + 1,
-    income: 0,
-    expense: 0,
-  }));
-
-  const expensesByCategory: Record<string, number> = {};
+  const expensesByCategory = new Map<string, { category: string; amount: number }>();
 
   for (const transaction of transactions) {
     const amount = Number(transaction.amount);
-    const month = new Date(transaction.date).getUTCMonth();
+    const transactionDate = new Date(transaction.date);
+    const monthIndex = monthIndexes.get(
+      `${transactionDate.getUTCFullYear()}-${transactionDate.getUTCMonth() + 1}`
+    );
+
+    if (monthIndex === undefined) continue;
 
     if (transaction.type === "INCOME") {
       income += amount;
-      monthlyData[month].income += amount;
+      monthlyData[monthIndex].income += amount;
     } else {
       expense += amount;
-      monthlyData[month].expense += amount;
+      monthlyData[monthIndex].expense += amount;
 
-      const categoryName = transaction.category.name;
-      expensesByCategory[categoryName] =
-        (expensesByCategory[categoryName] || 0) + amount;
+      const currentCategory = expensesByCategory.get(transaction.categoryId);
+      expensesByCategory.set(transaction.categoryId, {
+        category: transaction.category.name,
+        amount: (currentCategory?.amount ?? 0) + amount,
+      });
     }
   }
 
   return NextResponse.json({
-    year,
+    year: period === null ? requestedYear : currentDate.getUTCFullYear(),
+    period,
     summary: {
       income,
       expense,
       balance: income - expense,
     },
     monthlyData,
-    expensesByCategory: Object.entries(expensesByCategory).map(
-      ([category, amount]) => ({ category, amount })
+    expensesByCategory: [...expensesByCategory.values()].sort(
+      (first, second) => second.amount - first.amount
     ),
   });
 }
