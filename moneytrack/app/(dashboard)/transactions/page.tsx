@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 type Category = {
   id: string;
@@ -59,6 +60,7 @@ const dateLabel = (value: string) =>
   }).format(new Date(value));
 
 export default function TransactionsPage() {
+  const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -227,6 +229,7 @@ export default function TransactionsPage() {
 
       setModalOpen(false);
       await loadData();
+      router.refresh();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Une erreur est survenue."
@@ -257,6 +260,7 @@ export default function TransactionsPage() {
       }
 
       await loadData();
+      router.refresh();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Une erreur est survenue."

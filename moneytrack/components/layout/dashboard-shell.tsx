@@ -13,6 +13,7 @@ import {
   ReceiptText,
   Search,
   Tags,
+  TriangleAlert,
   TrendingUp,
   UserRound,
   WalletCards,
@@ -27,15 +28,30 @@ const mainLinks = [
   { label: "Statistiques", href: "/statistiques", icon: BarChart3 },
 ];
 
+type BudgetNotification = {
+  id: string;
+  categoryName: string;
+  percentage: number;
+  remaining: number;
+};
+
 export default function DashboardShell({
   children,
   userName,
+  transactionCount,
 }: {
   children: React.ReactNode;
   userName: string;
+  transactionCount: number;
 }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [budgetNotifications, setBudgetNotifications] = useState<
+    BudgetNotification[]
+  >([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState("");
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(`${href}/`);
@@ -69,8 +85,104 @@ export default function DashboardShell({
     return () => desktopQuery.removeEventListener("change", closeOnDesktop);
   }, []);
 
+  useEffect(() => {
+    if (!notificationsOpen) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setNotificationsOpen(false);
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [notificationsOpen]);
+
   function closeMobileMenu() {
     setMobileMenuOpen(false);
+  }
+
+  async function loadBudgetNotifications() {
+    setNotificationsLoading(true);
+    setNotificationsError("");
+
+    try {
+      const now = new Date();
+      const month = now.getMonth() + 1;
+      const year = now.getFullYear();
+      const response = await fetch(`/api/budgets?month=${month}&year=${year}`);
+      const data: unknown = await response.json();
+
+      if (!response.ok) {
+        const message =
+          typeof data === "object" &&
+          data !== null &&
+          "error" in data &&
+          typeof data.error === "string"
+            ? data.error
+            : "Impossible de charger les alertes.";
+        throw new Error(message);
+      }
+
+      if (
+        typeof data !== "object" ||
+        data === null ||
+        !("budgets" in data) ||
+        !Array.isArray(data.budgets)
+      ) {
+        throw new Error("La réponse des alertes est invalide.");
+      }
+
+      const alerts = data.budgets.flatMap((budget): BudgetNotification[] => {
+        if (
+          typeof budget !== "object" ||
+          budget === null ||
+          !("id" in budget) ||
+          typeof budget.id !== "string" ||
+          !("category" in budget) ||
+          typeof budget.category !== "object" ||
+          budget.category === null ||
+          !("name" in budget.category) ||
+          typeof budget.category.name !== "string" ||
+          !("percentage" in budget) ||
+          typeof budget.percentage !== "number" ||
+          !("remaining" in budget) ||
+          typeof budget.remaining !== "number" ||
+          budget.percentage < 80
+        ) {
+          return [];
+        }
+
+        return [
+          {
+            id: budget.id,
+            categoryName: budget.category.name,
+            percentage: budget.percentage,
+            remaining: budget.remaining,
+          },
+        ];
+      });
+
+      setBudgetNotifications(
+        alerts.sort((first, second) => second.percentage - first.percentage)
+      );
+    } catch (error) {
+      setNotificationsError(
+        error instanceof Error
+          ? error.message
+          : "Impossible de charger les alertes."
+      );
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }
+
+  function toggleNotifications() {
+    if (notificationsOpen) {
+      setNotificationsOpen(false);
+      return;
+    }
+
+    setNotificationsOpen(true);
+    void loadBudgetNotifications();
   }
 
   const initials =
@@ -153,7 +265,7 @@ export default function DashboardShell({
                   </span>
                   {item.href === "/transactions" && (
                     <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px]">
-                      24
+                      {transactionCount}
                     </span>
                   )}
                 </Link>
@@ -230,14 +342,116 @@ export default function DashboardShell({
           </div>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-4">
-            <button
-              type="button"
-              aria-label="Notifications"
-              className="relative inline-flex size-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50"
-            >
-              <Bell aria-hidden="true" size={19} />
-              <span className="absolute right-2 top-2 size-1.5 rounded-full bg-red-500" />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                aria-label={`Notifications, ${budgetNotifications.length} alerte${budgetNotifications.length === 1 ? "" : "s"} de budget`}
+                aria-expanded={notificationsOpen}
+                aria-controls="budget-notifications"
+                onClick={toggleNotifications}
+                className="relative inline-flex size-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50"
+              >
+                <Bell aria-hidden="true" size={19} />
+                {budgetNotifications.length > 0 && (
+                  <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-[#E85D5D] px-1 text-[10px] font-semibold leading-5 text-white">
+                    {budgetNotifications.length}
+                  </span>
+                )}
+              </button>
+
+              {notificationsOpen && (
+                <section
+                  id="budget-notifications"
+                  aria-label="Notifications de budget"
+                  className="absolute right-0 z-50 mt-3 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-slate-200 bg-white text-left text-[#14213d] shadow-xl"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                    <div>
+                      <h2 className="text-sm font-semibold">
+                        Alertes de budget
+                      </h2>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        Budgets à partir de 80 % utilisés ce mois-ci
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Fermer les notifications"
+                      onClick={() => setNotificationsOpen(false)}
+                      className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100"
+                    >
+                      <X aria-hidden="true" size={16} />
+                    </button>
+                  </div>
+
+                  {notificationsLoading ? (
+                    <p className="px-4 py-6 text-center text-sm text-slate-500">
+                      Chargement des alertes...
+                    </p>
+                  ) : notificationsError ? (
+                    <div className="px-4 py-5 text-center">
+                      <p role="alert" className="text-sm text-[#E85D5D]">
+                        {notificationsError}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => void loadBudgetNotifications()}
+                        className="mt-2 text-sm font-semibold text-[#16865e] hover:underline"
+                      >
+                        Réessayer
+                      </button>
+                    </div>
+                  ) : budgetNotifications.length === 0 ? (
+                    <p className="px-4 py-6 text-center text-sm text-slate-500">
+                      Aucune alerte de budget pour le moment.
+                    </p>
+                  ) : (
+                    <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto">
+                      {budgetNotifications.map((notification) => {
+                        const exceeded = notification.remaining < 0;
+                        const fullyUsed = notification.percentage >= 100;
+
+                        return (
+                          <li key={notification.id}>
+                            <Link
+                              href="/budgets"
+                              onClick={() => setNotificationsOpen(false)}
+                              className="flex gap-3 px-4 py-3 transition hover:bg-slate-50"
+                            >
+                              <TriangleAlert
+                                aria-hidden="true"
+                                className={`mt-0.5 shrink-0 ${
+                                  exceeded ? "text-[#E85D5D]" : "text-amber-500"
+                                }`}
+                                size={18}
+                              />
+                              <span className="min-w-0">
+                                <span className="block truncate text-sm font-medium">
+                                  {notification.categoryName}
+                                </span>
+                                <span className="mt-0.5 block text-xs text-slate-500">
+                                  {exceeded
+                                    ? `Budget dépassé de ${new Intl.NumberFormat(
+                                        "fr-FR",
+                                        { maximumFractionDigits: 0 }
+                                      ).format(Math.abs(notification.remaining))} FCFA`
+                                    : fullyUsed
+                                      ? "Budget entièrement consommé"
+                                      : "Vous avez utilisé une grande partie du budget"}
+                                </span>
+                              </span>
+                              <span className="ml-auto shrink-0 text-xs font-semibold text-slate-600">
+                                {notification.percentage}%
+                              </span>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </section>
+              )}
+            </div>
 
             <div className="hidden h-9 border-l border-slate-200 sm:block" />
 
