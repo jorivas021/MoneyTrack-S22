@@ -14,18 +14,36 @@ export async function GET() {
 
   if (response) return response;
 
-  const categories = await prisma.category.findMany({
-    where: {
-      isActive: true,
-      OR: [
-        { userId: userId! },
-        { userId: null },
-      ],
-    },
-    orderBy: { name: "asc" },
-  });
+  const [categories, transactionCounts] = await Promise.all([
+    prisma.category.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { userId: userId! },
+          { userId: null },
+        ],
+      },
+      orderBy: { name: "asc" },
+    }),
+    prisma.transaction.groupBy({
+      by: ["categoryId"],
+      where: { userId: userId! },
+      _count: { _all: true },
+    }),
+  ]);
+  const countsByCategoryId = new Map(
+    transactionCounts.map(({ categoryId, _count }) => [
+      categoryId,
+      _count._all,
+    ])
+  );
 
-  return NextResponse.json({ categories });
+  return NextResponse.json({
+    categories: categories.map((category) => ({
+      ...category,
+      transactionCount: countsByCategoryId.get(category.id) ?? 0,
+    })),
+  });
 }
 
 export async function POST(request: Request) {
