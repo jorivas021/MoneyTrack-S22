@@ -73,7 +73,7 @@ export default function AuthLayout({
           </div>
 
           <p className="relative text-xs text-slate-500">
-            © {new Date().getFullYear()} MoneyTrack. Tous droits réservés.
+            © 2026 MoneyTrack. Tous droits réservés.
           </p>
         </section>
 
