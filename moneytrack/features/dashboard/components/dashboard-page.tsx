@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowDownRight,
   ArrowUpRight,
   CalendarDays,
+  ChevronRight,
   CircleDollarSign,
   Landmark,
   Plus,
+  RefreshCw,
   Target,
   TrendingDown,
   TrendingUp,
@@ -111,6 +113,15 @@ function getMonthLabel(year: number, month: number) {
     month: "short",
     timeZone: "UTC",
   });
+}
+
+function formatTransactionDate(value: string) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(value));
 }
 
 function getChange(current: number, previous: number) {
@@ -407,44 +418,71 @@ export default function DashboardPage({ userName }: { userName: string }) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const requestController = useRef<AbortController | null>(null);
+
+  const loadDashboard = useCallback(async () => {
+    requestController.current?.abort();
+    const controller = new AbortController();
+    requestController.current = controller;
+
+    try {
+      const response = await fetch("/api/dashboard", {
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      const body: unknown = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(getErrorMessage(body));
+      }
+
+      const parsed = dashboardResponseSchema.safeParse(body);
+      if (!parsed.success) {
+        throw new Error("La réponse du tableau de bord est invalide.");
+      }
+
+      setData(parsed.data);
+      setError(null);
+    } catch (loadError) {
+      if (!controller.signal.aborted) {
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Impossible de charger les données du tableau de bord."
+        );
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    }
+  }, []);
+
+  const refreshDashboard = useCallback(() => {
+    setRefreshing(true);
+    void loadDashboard();
+  }, [loadDashboard]);
 
   useEffect(() => {
-    const controller = new AbortController();
+    void Promise.resolve().then(loadDashboard);
 
-    async function loadDashboard() {
-      try {
-        const response = await fetch("/api/dashboard", {
-          cache: "no-store",
-          signal: controller.signal,
-        });
-        const body: unknown = await response.json().catch(() => null);
-
-        if (!response.ok) {
-          throw new Error(getErrorMessage(body));
-        }
-
-        const parsed = dashboardResponseSchema.safeParse(body);
-        if (!parsed.success) {
-          throw new Error("La réponse du tableau de bord est invalide.");
-        }
-
-        setData(parsed.data);
-      } catch (loadError) {
-        if (!controller.signal.aborted) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Impossible de charger les données du tableau de bord."
-          );
-        }
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
+    function refreshWhenVisible() {
+      if (document.visibilityState === "visible") {
+        refreshDashboard();
       }
     }
 
-    void loadDashboard();
-    return () => controller.abort();
-  }, []);
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+
+    return () => {
+      requestController.current?.abort();
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [loadDashboard, refreshDashboard]);
 
   const chartData = data?.monthlyData ?? [];
   const previousMonth = chartData.at(-2);
@@ -468,7 +506,7 @@ export default function DashboardPage({ userName }: { userName: string }) {
     <div className="min-w-0 space-y-4 bg-[#F5F7FA] text-[#14213D]">
       {loading ? (
         <DashboardLoading />
-      ) : error ? (
+      ) : error && !data ? (
         <div
           aria-live="polite"
           className="rounded-xl border border-[#E85D5D]/25 bg-white p-6 text-sm text-[#9f3434]"
@@ -547,7 +585,113 @@ export default function DashboardPage({ userName }: { userName: string }) {
             />
           </section>
 
+          {error && (
+            <div
+              aria-live="polite"
+              className="rounded-lg border border-[#E85D5D]/25 bg-white px-4 py-3 text-sm text-[#9f3434]"
+              role="status"
+            >
+              Mise à jour impossible : {error}
+            </div>
+          )}
+
           <DashboardCharts data={data} />
+
+          <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm xl:p-5">
+            <header className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="font-semibold text-[#14213D]">
+                  Dernières transactions
+                </h2>
+                <p className="mt-1 text-xs text-slate-500">
+                  Vos cinq opérations les plus récentes
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-3">
+                <button
+                  aria-label="Actualiser les dernières transactions"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition hover:text-[#14213D] disabled:cursor-wait disabled:opacity-60"
+                  disabled={refreshing}
+                  onClick={refreshDashboard}
+                  title="Actualiser"
+                  type="button"
+                >
+                  <RefreshCw
+                    aria-hidden="true"
+                    className={refreshing ? "animate-spin" : ""}
+                    size={14}
+                  />
+                </button>
+                <Link
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#16A36A] transition hover:text-[#118653]"
+                  href="/transactions"
+                >
+                  Voir tout
+                  <ChevronRight aria-hidden="true" size={15} />
+                </Link>
+              </div>
+            </header>
+
+            {data.recentTransactions.length > 0 ? (
+              <ul className="divide-y divide-slate-100">
+                {data.recentTransactions.map((transaction) => {
+                  const isIncome = transaction.type === "INCOME";
+                  const Icon = isIncome ? ArrowDownRight : ArrowUpRight;
+
+                  return (
+                    <li
+                      className="flex flex-col gap-3 py-3 first:pt-1 last:pb-1 sm:flex-row sm:items-center sm:justify-between"
+                      key={transaction.id}
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span
+                          className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${
+                            isIncome
+                              ? "bg-emerald-50 text-[#16A36A]"
+                              : "bg-rose-50 text-[#E85D5D]"
+                          }`}
+                        >
+                          <Icon aria-hidden="true" size={19} />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-[#14213D]">
+                            {transaction.description?.trim() ||
+                              transaction.category.name}
+                          </p>
+                          <p className="mt-1 truncate text-xs text-slate-400">
+                            {transaction.category.name}
+                            <span aria-hidden="true"> · </span>
+                            {formatTransactionDate(transaction.date)}
+                          </p>
+                        </div>
+                      </div>
+                      <p
+                        className={`shrink-0 text-sm font-bold sm:text-right ${
+                          isIncome ? "text-[#16A36A]" : "text-[#14213D]"
+                        }`}
+                      >
+                        {isIncome ? "+" : "−"}
+                        {formatCurrency(Number(transaction.amount))}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="rounded-lg bg-slate-50 px-4 py-8 text-center">
+                <p className="text-sm text-slate-500">
+                  Aucune transaction enregistrée pour le moment.
+                </p>
+                <Link
+                  className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[#16A36A] hover:text-[#118653]"
+                  href="/transactions"
+                >
+                  Ajouter une transaction
+                  <ChevronRight aria-hidden="true" size={16} />
+                </Link>
+              </div>
+            )}
+          </section>
 
           {data.budgets.length > 0 && (
             <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm xl:p-5">
