@@ -3,6 +3,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-guard";
+import { getBudgetsWithUsage } from "@/features/budgets/services/budget-service";
+
+const budgetFiltersSchema = z.object({
+  month: z.coerce.number().int().min(1).max(12).optional(),
+  year: z.coerce.number().int().min(2020).max(2100).optional(),
+});
 
 const budgetSchema = z.object({
   categoryId: z.string().uuid(),
@@ -11,18 +17,36 @@ const budgetSchema = z.object({
   limitAmount: z.number().positive(),
 });
 
-export async function GET() {
+export async function GET(request: Request) {
   const { userId, response } = await requireAuth();
 
   if (response) return response;
 
-  const budgets = await prisma.budget.findMany({
-    where: { userId: userId! },
-    include: { category: true },
-    orderBy: [{ year: "desc" }, { month: "desc" }],
+  const searchParams = new URL(request.url).searchParams;
+  const parsedFilters = budgetFiltersSchema.safeParse({
+    month: searchParams.get("month") ?? undefined,
+    year: searchParams.get("year") ?? undefined,
   });
 
-  return NextResponse.json({ budgets });
+  if (!parsedFilters.success || (parsedFilters.data.month && !parsedFilters.data.year)) {
+    return NextResponse.json(
+      {
+        error: "Filtres invalides. Le mois doit être compris entre 1 et 12, et être accompagné d'une année valide.",
+      },
+      { status: 400 }
+    );
+  }
+
+  const { month, year } = parsedFilters.data;
+  const budgets = await getBudgetsWithUsage(userId!, {
+    ...(month !== undefined ? { month } : {}),
+    ...(year !== undefined ? { year } : {}),
+  });
+
+  return NextResponse.json(
+    { budgets },
+    { headers: { "Cache-Control": "private, no-store" } }
+  );
 }
 
 export async function POST(request: Request) {
@@ -87,9 +111,12 @@ export async function POST(request: Request) {
       },
       include: { category: true },
     });
+    const [budgetWithUsage] = await getBudgetsWithUsage(userId!, {
+      id: budget.id,
+    });
 
     return NextResponse.json(
-      { message: "Budget créé avec succès.", budget },
+      { message: "Budget créé avec succès.", budget: budgetWithUsage },
       { status: 201 }
     );
   } catch (error) {

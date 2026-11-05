@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import DashboardShell from "@/components/layout/dashboard-shell";
+import { prisma } from "@/lib/prisma";
 
 async function AuthenticatedDashboard({
   children,
@@ -14,8 +15,15 @@ async function AuthenticatedDashboard({
     redirect("/login");
   }
 
+  const transactionCount = await prisma.transaction.count({
+    where: { userId: session.user.id },
+  });
+
   return (
-    <DashboardShell userName={session.user.name || "Utilisateur"}>
+    <DashboardShell
+      transactionCount={transactionCount}
+      userName={session.user.name || "Utilisateur"}
+    >
       {children}
     </DashboardShell>
   );
