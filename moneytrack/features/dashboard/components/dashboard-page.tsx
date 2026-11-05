@@ -597,154 +597,235 @@ export default function DashboardPage({ userName }: { userName: string }) {
 
           <DashboardCharts data={data} />
 
-          <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm xl:p-5">
-            <header className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="font-semibold text-[#14213D]">
-                  Dernières transactions
-                </h2>
-                <p className="mt-1 text-xs text-slate-500">
-                  Vos cinq opérations les plus récentes
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-3">
-                <button
-                  aria-label="Actualiser les dernières transactions"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition hover:text-[#14213D] disabled:cursor-wait disabled:opacity-60"
-                  disabled={refreshing}
-                  onClick={refreshDashboard}
-                  title="Actualiser"
-                  type="button"
-                >
-                  <RefreshCw
-                    aria-hidden="true"
-                    className={refreshing ? "animate-spin" : ""}
-                    size={14}
-                  />
-                </button>
-                <Link
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#16A36A] transition hover:text-[#118653]"
-                  href="/transactions"
-                >
-                  Voir tout
-                  <ChevronRight aria-hidden="true" size={15} />
-                </Link>
-              </div>
-            </header>
+          <section className="grid min-w-0 grid-cols-1 items-stretch gap-4 xl:grid-cols-[1.7fr_1fr]">
+            <article className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm xl:p-5">
+              <header className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="font-semibold text-[#14213D]">
+                    Dernières transactions
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Vos mouvements les plus récents
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <button
+                    aria-label="Actualiser les dernières transactions"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition hover:text-[#14213D] disabled:cursor-wait disabled:opacity-60"
+                    disabled={refreshing}
+                    onClick={refreshDashboard}
+                    title="Actualiser"
+                    type="button"
+                  >
+                    <RefreshCw
+                      aria-hidden="true"
+                      className={refreshing ? "animate-spin" : ""}
+                      size={14}
+                    />
+                  </button>
+                  <Link
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#16A36A] transition hover:text-[#118653]"
+                    href="/transactions"
+                  >
+                    Voir tout
+                    <ChevronRight aria-hidden="true" size={15} />
+                  </Link>
+                </div>
+              </header>
 
-            {data.recentTransactions.length > 0 ? (
-              <ul className="divide-y divide-slate-100">
-                {data.recentTransactions.map((transaction) => {
-                  const isIncome = transaction.type === "INCOME";
-                  const Icon = isIncome ? ArrowDownRight : ArrowUpRight;
+              {data.recentTransactions.length > 0 ? (
+                <ul className="divide-y divide-slate-100">
+                  {data.recentTransactions.map((transaction) => {
+                    const isIncome = transaction.type === "INCOME";
+                    const Icon = isIncome ? ArrowDownRight : ArrowUpRight;
 
-                  return (
-                    <li
-                      className="flex flex-col gap-3 py-3 first:pt-1 last:pb-1 sm:flex-row sm:items-center sm:justify-between"
-                      key={transaction.id}
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <span
-                          className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${
-                            isIncome
-                              ? "bg-emerald-50 text-[#16A36A]"
-                              : "bg-rose-50 text-[#E85D5D]"
+                    return (
+                      <li
+                        className="flex flex-col gap-3 py-3 first:pt-1 last:pb-1 sm:flex-row sm:items-center sm:justify-between"
+                        key={transaction.id}
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span
+                            className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${
+                              isIncome
+                                ? "bg-emerald-50 text-[#16A36A]"
+                                : "bg-rose-50 text-[#E85D5D]"
+                            }`}
+                          >
+                            <Icon aria-hidden="true" size={19} />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-[#14213D]">
+                              {transaction.description?.trim() ||
+                                transaction.category.name}
+                            </p>
+                            <p className="mt-1 truncate text-xs text-slate-400">
+                              {transaction.category.name}
+                              <span aria-hidden="true"> · </span>
+                              {formatTransactionDate(transaction.date)}
+                            </p>
+                          </div>
+                        </div>
+                        <p
+                          className={`shrink-0 text-sm font-bold sm:text-right ${
+                            isIncome ? "text-[#16A36A]" : "text-[#14213D]"
                           }`}
                         >
-                          <Icon aria-hidden="true" size={19} />
-                        </span>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-[#14213D]">
-                            {transaction.description?.trim() ||
-                              transaction.category.name}
-                          </p>
-                          <p className="mt-1 truncate text-xs text-slate-400">
-                            {transaction.category.name}
-                            <span aria-hidden="true"> · </span>
-                            {formatTransactionDate(transaction.date)}
-                          </p>
-                        </div>
-                      </div>
-                      <p
-                        className={`shrink-0 text-sm font-bold sm:text-right ${
-                          isIncome ? "text-[#16A36A]" : "text-[#14213D]"
-                        }`}
-                      >
-                        {isIncome ? "+" : "−"}
-                        {formatCurrency(Number(transaction.amount))}
-                      </p>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <div className="rounded-lg bg-slate-50 px-4 py-8 text-center">
-                <p className="text-sm text-slate-500">
-                  Aucune transaction enregistrée pour le moment.
-                </p>
-                <Link
-                  className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[#16A36A] hover:text-[#118653]"
-                  href="/transactions"
-                >
-                  Ajouter une transaction
-                  <ChevronRight aria-hidden="true" size={16} />
-                </Link>
-              </div>
-            )}
-          </section>
+                          {isIncome ? "+" : "−"}
+                          {formatCurrency(Number(transaction.amount))}
+                        </p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <div className="rounded-lg bg-slate-50 px-4 py-8 text-center">
+                  <p className="text-sm text-slate-500">
+                    Aucune transaction enregistrée pour le moment.
+                  </p>
+                  <Link
+                    className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[#16A36A] hover:text-[#118653]"
+                    href="/transactions"
+                  >
+                    Ajouter une transaction
+                    <ChevronRight aria-hidden="true" size={16} />
+                  </Link>
+                </div>
+              )}
+            </article>
 
-          {data.budgets.length > 0 && (
-            <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm xl:p-5">
+            <article className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm xl:p-5">
               <header className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <h2 className="font-semibold text-[#14213D]">
                     Suivi des budgets
                   </h2>
-                  <p className="mt-1 text-xs text-slate-500">
-                    Dépenses par rapport aux limites définies pour ce mois
+                  <p className="mt-1 text-xs capitalize text-slate-500">
+                    {monthLabel}
                   </p>
                 </div>
-                <CircleDollarSign
-                  aria-hidden="true"
-                  className="text-slate-400"
-                  size={20}
-                />
+                <Link
+                  className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-[#16A36A] transition hover:text-[#118653]"
+                  href="/budgets"
+                >
+                  Gérer
+                  <ChevronRight aria-hidden="true" size={15} />
+                </Link>
               </header>
-              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 xl:gap-4">
-                {data.budgets.map((budget) => (
-                  <li
-                    className="rounded-lg border border-slate-100 p-4"
-                    key={budget.id}
+
+              {data.budgets.length > 0 ? (
+                <>
+                  <ul className="space-y-4">
+                    {[...data.budgets]
+                      .sort(
+                        (first, second) =>
+                          second.percentage - first.percentage
+                      )
+                      .slice(0, 4)
+                      .map((budget, index) => {
+                        const exceeded = budget.percentage >= 100;
+                        const warning = budget.percentage >= 80 && !exceeded;
+                        const barColor = exceeded
+                          ? "bg-[#E85D5D]"
+                          : warning
+                            ? "bg-orange-500"
+                            : "bg-[#16A36A]";
+                        const iconColor =
+                          index % 3 === 0
+                            ? "bg-orange-50 text-orange-500"
+                            : index % 3 === 1
+                              ? "bg-cyan-50 text-cyan-600"
+                              : "bg-violet-50 text-violet-500";
+
+                        return (
+                          <li className="min-w-0" key={budget.id}>
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex min-w-0 items-center gap-2.5">
+                                <span
+                                  className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${iconColor}`}
+                                >
+                                  <CircleDollarSign
+                                    aria-hidden="true"
+                                    size={18}
+                                  />
+                                </span>
+                                <div className="min-w-0">
+                                  <p className="truncate text-xs font-semibold text-[#14213D]">
+                                    {budget.category}
+                                  </p>
+                                  <p className="mt-0.5 truncate text-[10px] text-slate-400">
+                                    {currencyFormatter.format(budget.spent)} sur{" "}
+                                    {currencyFormatter.format(budget.limit)} FCFA
+                                  </p>
+                                </div>
+                              </div>
+                              <span
+                                className={`shrink-0 text-xs font-semibold ${
+                                  exceeded
+                                    ? "text-[#E85D5D]"
+                                    : warning
+                                      ? "text-orange-500"
+                                      : "text-[#14213D]"
+                                }`}
+                              >
+                                {Math.round(budget.percentage)}%
+                              </span>
+                            </div>
+                            <div
+                              aria-label={`${Math.round(budget.percentage)}% du budget ${budget.category} utilisé`}
+                              aria-valuemax={100}
+                              aria-valuemin={0}
+                              aria-valuenow={Math.min(
+                                Math.max(budget.percentage, 0),
+                                100
+                              )}
+                              className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"
+                              role="progressbar"
+                            >
+                              <div
+                                className={`h-full rounded-full ${barColor}`}
+                                style={{
+                                  width: `${Math.min(
+                                    Math.max(budget.percentage, 0),
+                                    100
+                                  )}%`,
+                                }}
+                              />
+                            </div>
+                          </li>
+                        );
+                      })}
+                  </ul>
+                  {data.budgets.length > 4 && (
+                    <Link
+                      className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[#16A36A] hover:text-[#118653]"
+                      href="/budgets"
+                    >
+                      Voir les {data.budgets.length} budgets
+                      <ChevronRight aria-hidden="true" size={14} />
+                    </Link>
+                  )}
+                </>
+              ) : (
+                <div className="flex min-h-40 flex-col items-center justify-center rounded-lg bg-slate-50 px-4 py-6 text-center">
+                  <Target
+                    aria-hidden="true"
+                    className="text-slate-400"
+                    size={23}
+                  />
+                  <p className="mt-3 text-sm text-slate-500">
+                    Aucun budget défini pour ce mois.
+                  </p>
+                  <Link
+                    className="mt-2 text-xs font-semibold text-[#16A36A] hover:text-[#118653]"
+                    href="/budgets"
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="truncate text-sm font-medium">
-                        {budget.category}
-                      </span>
-                      <span className="text-xs text-slate-400">
-                        {budget.percentage}%
-                      </span>
-                    </div>
-                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className={`h-full rounded-full ${
-                          budget.percentage > 100
-                            ? "bg-[#E85D5D]"
-                            : "bg-[#16A36A]"
-                        }`}
-                        style={{
-                          width: `${Math.min(budget.percentage, 100)}%`,
-                        }}
-                      />
-                    </div>
-                    <p className="mt-3 text-xs text-slate-500">
-                      {formatCurrency(budget.spent)} /{" "}
-                      {formatCurrency(budget.limit)}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
+                    Créer un budget
+                  </Link>
+                </div>
+              )}
+            </article>
+          </section>
         </>
       ) : null}
     </div>
