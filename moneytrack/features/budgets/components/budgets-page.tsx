@@ -326,9 +326,10 @@ function BudgetCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const { Icon, colors } = getCategoryAppearance(budget.category.name, index);
   const percent = Math.max(0, Math.round(budget.percentage));
-  const exceeded = budget.percentage > 100;
-  const warning = !exceeded && budget.percentage >= 80;
-  const barColor = exceeded
+  const exceeded = budget.remaining < 0;
+  const fullyConsumed = budget.remaining === 0;
+  const warning = !exceeded && !fullyConsumed && budget.percentage >= 80;
+  const barColor = exceeded || fullyConsumed
     ? "bg-[#E85D5D]"
     : warning
       ? "bg-orange-500"
@@ -425,17 +426,21 @@ function BudgetCard({
         </p>
         <p
           className={`font-semibold ${
-            exceeded ? "text-[#E85D5D]" : warning ? "text-orange-500" : "text-[#16A36A]"
+            exceeded || fullyConsumed
+              ? "text-[#E85D5D]"
+              : warning
+                ? "text-orange-500"
+                : "text-[#16A36A]"
           }`}
         >
           {percent}%
         </p>
       </div>
 
-      {(warning || exceeded) && (
+      {(warning || exceeded || fullyConsumed) && (
         <div
           className={`mt-4 flex items-center gap-2 rounded-lg px-3 py-2.5 text-[11px] ${
-            exceeded
+            exceeded || fullyConsumed
               ? "bg-rose-50 text-[#E85D5D]"
               : "bg-orange-50 text-orange-600"
           }`}
@@ -444,7 +449,9 @@ function BudgetCard({
           <span>
             {exceeded
               ? `Budget dépassé de ${formatCurrency(Math.abs(budget.remaining))}`
-              : "Attention, plus de 80 % du budget utilisé"}
+              : fullyConsumed
+                ? "Budget entièrement consommé : 100 % atteint"
+                : "Attention, plus de 80 % du budget utilisé"}
           </span>
         </div>
       )}
