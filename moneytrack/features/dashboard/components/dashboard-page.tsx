@@ -167,18 +167,18 @@ function SummaryCard({
   budgetPercentage?: number;
 }) {
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm xl:p-5">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-slate-500">{title}</h2>
         <span className={`flex size-10 items-center justify-center rounded-xl ${iconClassName}`}>
           <Icon aria-hidden="true" size={20} />
         </span>
       </div>
-      <p className="mt-4 text-2xl font-bold tracking-tight text-[#14213D]">
+      <p className="mt-4 break-words text-xl font-bold tracking-tight text-[#14213D] xl:text-2xl">
         {formatCurrency(amount)}
       </p>
       {budgetPercentage !== undefined ? (
-        <div className="mt-4 flex items-center gap-3">
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <div
             aria-label={`${Math.min(budgetPercentage, 100)} % du budget utilisé`}
             className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100"
@@ -216,7 +216,7 @@ function DashboardLoading() {
       role="status"
     >
       <div className="h-20 animate-pulse rounded-xl bg-slate-200" />
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 xl:grid-cols-4 xl:gap-4">
         {Array.from({ length: 4 }, (_, index) => (
           <div
             className="h-36 animate-pulse rounded-xl bg-slate-200"
@@ -224,7 +224,7 @@ function DashboardLoading() {
           />
         ))}
       </div>
-      <div className="grid grid-cols-[1.7fr_1fr] gap-4">
+      <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1.7fr_1fr] xl:gap-4">
         <div className="h-96 animate-pulse rounded-xl bg-slate-200" />
         <div className="h-96 animate-pulse rounded-xl bg-slate-200" />
       </div>
@@ -246,8 +246,8 @@ function DashboardCharts({ data }: { data: DashboardData }) {
   }));
 
   return (
-    <section className="grid grid-cols-[1.7fr_1fr] gap-4">
-      <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="grid min-w-0 grid-cols-1 gap-3 xl:grid-cols-[1.7fr_1fr] xl:gap-4">
+      <article className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm xl:p-5">
         <header className="mb-5">
           <h2 className="font-semibold text-[#14213D]">Évolution financière</h2>
           <p className="mt-1 text-xs text-slate-500">
@@ -257,13 +257,13 @@ function DashboardCharts({ data }: { data: DashboardData }) {
         {monthlyChartData.some((item) => item.income > 0 || item.expense > 0) ? (
           <div
             aria-label="Graphique des revenus et dépenses des six derniers mois"
-            className="h-[330px] w-full"
+            className="h-[260px] w-full sm:h-[300px] xl:h-[330px]"
             role="img"
           >
             <ResponsiveContainer height="100%" width="100%">
               <LineChart
                 data={monthlyChartData}
-                margin={{ top: 10, right: 12, left: 8, bottom: 4 }}
+                margin={{ top: 10, right: 4, left: -18, bottom: 4 }}
               >
                 <CartesianGrid stroke="#E8EDF3" vertical={false} />
                 <XAxis
@@ -281,16 +281,16 @@ function DashboardCharts({ data }: { data: DashboardData }) {
                       : `${Math.round(value / 1_000)}k`
                   }
                   tickLine={false}
-                  width={55}
+                  width={48}
                 />
                 <Tooltip
                   formatter={(value) => formatCurrency(Number(value ?? 0))}
                   labelFormatter={(label) => String(label)}
                 />
                 <Legend
-                  align="right"
+                  align="center"
                   iconType="circle"
-                  verticalAlign="top"
+                  verticalAlign="bottom"
                 />
                 <Line
                   activeDot={{ r: 5 }}
@@ -320,7 +320,7 @@ function DashboardCharts({ data }: { data: DashboardData }) {
         )}
       </article>
 
-      <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <article className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm xl:p-5">
         <header>
           <h2 className="font-semibold text-[#14213D]">
             Dépenses par catégorie
@@ -333,7 +333,7 @@ function DashboardCharts({ data }: { data: DashboardData }) {
           <>
             <div
               aria-label="Diagramme des dépenses par catégorie ce mois-ci"
-              className="relative mx-auto mt-2 h-[225px] w-full"
+              className="relative mx-auto mt-2 h-[210px] w-full sm:h-[225px]"
               role="img"
             >
               <ResponsiveContainer height="100%" width="100%">
@@ -385,7 +385,7 @@ function DashboardCharts({ data }: { data: DashboardData }) {
                     <span className="font-medium text-[#14213D]">
                       {currencyFormatter.format(item.amount)}
                     </span>
-                    <span className="ml-2 text-slate-400">
+                    <span className="ml-1 text-slate-400 sm:ml-2">
                       {Math.round(item.percentage)}%
                     </span>
                   </span>
@@ -465,7 +465,7 @@ export default function DashboardPage({ userName }: { userName: string }) {
   const firstName = userName.trim().split(/\s+/)[0] || "Utilisateur";
 
   return (
-    <div className="space-y-4 bg-[#F5F7FA] text-[#14213D]">
+    <div className="min-w-0 space-y-4 bg-[#F5F7FA] text-[#14213D]">
       {loading ? (
         <DashboardLoading />
       ) : error ? (
@@ -485,25 +485,25 @@ export default function DashboardPage({ userName }: { userName: string }) {
         </div>
       ) : data ? (
         <>
-          <header className="mb-6 flex items-end justify-between gap-6">
-            <div>
+          <header className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between xl:gap-6">
+            <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                 {data.currentMonth.month}/{data.currentMonth.year}
               </p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#14213D]">
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#14213D] sm:text-3xl">
                 Bonjour {firstName}, voici vos finances.
               </h1>
               <p className="mt-2 text-sm text-slate-500">
                 Un aperçu de votre situation financière ce mois-ci.
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium capitalize text-[#14213D]">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <span className="inline-flex min-w-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm font-medium capitalize text-[#14213D] sm:px-4">
                 <CalendarDays aria-hidden="true" size={17} />
                 {monthLabel}
               </span>
               <Link
-                className="inline-flex items-center gap-2 rounded-lg bg-[#14213D] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1d3157]"
+                className="inline-flex min-w-0 items-center justify-center gap-2 rounded-lg bg-[#14213D] px-3 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#1d3157] sm:px-5"
                 href="/transactions"
               >
                 <Plus aria-hidden="true" size={18} />
@@ -512,7 +512,10 @@ export default function DashboardPage({ userName }: { userName: string }) {
             </div>
           </header>
 
-          <section aria-label="Résumé financier" className="grid grid-cols-4 gap-4">
+          <section
+            aria-label="Résumé financier"
+            className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 xl:grid-cols-4 xl:gap-4"
+          >
             <SummaryCard
               amount={data.summary.balance}
               caption="Revenus cumulés moins dépenses"
@@ -547,8 +550,8 @@ export default function DashboardPage({ userName }: { userName: string }) {
           <DashboardCharts data={data} />
 
           {data.budgets.length > 0 && (
-            <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <header className="mb-4 flex items-center justify-between">
+            <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm xl:p-5">
+              <header className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <h2 className="font-semibold text-[#14213D]">
                     Suivi des budgets
@@ -563,7 +566,7 @@ export default function DashboardPage({ userName }: { userName: string }) {
                   size={20}
                 />
               </header>
-              <ul className="grid grid-cols-3 gap-4">
+              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 xl:gap-4">
                 {data.budgets.map((budget) => (
                   <li
                     className="rounded-lg border border-slate-100 p-4"
