@@ -81,6 +81,7 @@ export default function DashboardShell({
       .join("")
       .slice(0, 2)
       .toUpperCase() || "U";
+  const isBudgetsPage = isActive("/budgets");
 
   return (
     <div className="min-h-screen overflow-x-clip bg-[#f4f6fa] text-[#14213d] md:flex">
@@ -96,7 +97,7 @@ export default function DashboardShell({
       <aside
         aria-label="Navigation principale"
         aria-modal={mobileMenuOpen ? true : undefined}
-        className={`fixed inset-y-0 left-0 z-50 flex h-dvh w-[280px] max-w-[85vw] shrink-0 flex-col bg-[#14213d] text-white shadow-2xl transition-transform duration-300 ease-out md:sticky md:top-0 md:z-auto md:h-screen md:w-[290px] md:max-w-none md:translate-x-0 md:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-dvh w-[280px] max-w-[85vw] shrink-0 flex-col bg-[#14213d] text-white shadow-2xl transition-transform duration-300 ease-out md:sticky md:top-0 md:z-auto md:h-screen md:w-[240px] md:max-w-none md:translate-x-0 md:shadow-none xl:w-[290px] ${
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         role={mobileMenuOpen ? "dialog" : undefined}
@@ -193,7 +194,7 @@ export default function DashboardShell({
       </aside>
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 sm:px-5 md:static md:h-[76px] md:gap-4 md:px-8">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 sm:px-5 md:static md:h-[76px] md:gap-4 md:px-4 xl:px-8">
           <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <button
               aria-expanded={mobileMenuOpen}
@@ -208,15 +209,24 @@ export default function DashboardShell({
                 <Menu aria-hidden="true" size={20} />
               )}
             </button>
-            <div className="flex min-w-0 max-w-xl flex-1 items-center gap-2 text-slate-400 sm:gap-3">
+            <div
+              className={`flex min-w-0 max-w-xl flex-1 items-center gap-2 text-slate-400 sm:gap-3 ${
+                isBudgetsPage ? "hidden md:flex" : ""
+              }`}
+            >
               <Search aria-hidden="true" className="shrink-0" size={18} />
               <span className="truncate text-xs sm:text-sm">
                 Rechercher une transaction...
               </span>
-              <kbd className="ml-auto hidden shrink-0 rounded border border-slate-200 px-2 py-1 text-[10px] lg:block">
+              <kbd className="ml-auto hidden shrink-0 rounded border border-slate-200 px-2 py-1 text-[10px] md:block">
                 ⌘ K
               </kbd>
             </div>
+            {isBudgetsPage && (
+              <p className="min-w-0 flex-1 truncate text-base font-semibold text-[#14213d] md:hidden">
+                Budgets
+              </p>
+            )}
           </div>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-4">
@@ -246,7 +256,7 @@ export default function DashboardShell({
           </div>
         </header>
 
-        <main className="min-h-[calc(100vh-64px)] min-w-0 flex-1 p-3 sm:p-5 md:min-h-[calc(100vh-76px)] md:p-8">
+        <main className="min-h-[calc(100vh-64px)] min-w-0 flex-1 p-3 sm:p-5 md:min-h-[calc(100vh-76px)] md:p-4 xl:p-8">
           {children}
         </main>
       </div>

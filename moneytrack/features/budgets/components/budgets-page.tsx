@@ -652,8 +652,8 @@ export default function BudgetsPage() {
   }
 
   return (
-    <div className="min-w-0 space-y-4 text-[#14213D]">
-      <header className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
+    <div className="min-w-0 space-y-4 pb-20 text-[#14213D] sm:pb-4">
+      <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center xl:gap-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
             Budgets mensuels
@@ -663,8 +663,8 @@ export default function BudgetsPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <div className="flex w-auto shrink-0 items-center rounded-lg border border-slate-200 bg-white shadow-sm">
             <button
               aria-label="Mois précédent"
               className="rounded-l-lg p-3 text-slate-500 transition hover:bg-slate-50 hover:text-[#14213D]"
@@ -674,13 +674,12 @@ export default function BudgetsPage() {
               <ChevronLeft aria-hidden="true" size={17} />
             </button>
             <label
-              className="flex items-center gap-2 px-2 text-sm font-medium capitalize"
-              htmlFor="budget-period"
+              className="relative flex size-11 shrink-0 cursor-pointer items-center justify-center text-sm font-medium capitalize lg:w-auto lg:gap-2 lg:px-3"
             >
               <CalendarDays aria-hidden="true" className="text-slate-500" size={17} />
-              <span className="sr-only">Période des budgets</span>
               <input
-                className="w-28 cursor-pointer border-0 bg-transparent text-sm outline-none"
+                aria-label="Période des budgets"
+                className="absolute inset-0 z-10 size-full cursor-pointer opacity-0 lg:static lg:z-auto lg:h-auto lg:w-28 lg:opacity-100 lg:outline-none"
                 id="budget-period"
                 onChange={(event) => {
                   const [selectedYear, selectedMonth] = event.target.value
@@ -694,7 +693,7 @@ export default function BudgetsPage() {
               />
               <ChevronDown
                 aria-hidden="true"
-                className="hidden text-slate-400 sm:block"
+                className="hidden text-slate-400 lg:block"
                 size={15}
               />
             </label>
@@ -708,7 +707,7 @@ export default function BudgetsPage() {
             </button>
           </div>
           <button
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#14213D] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1d3155] disabled:cursor-not-allowed disabled:opacity-60"
+            className="hidden items-center justify-center gap-2 rounded-lg bg-[#14213D] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1d3155] disabled:cursor-not-allowed disabled:opacity-60 sm:inline-flex"
             disabled={categories.length === 0}
             onClick={() => {
               setEditingBudget(null);
@@ -742,7 +741,7 @@ export default function BudgetsPage() {
       {loading ? (
         <div className="space-y-4" role="status" aria-label="Chargement des budgets">
           <div className="h-32 animate-pulse rounded-xl bg-slate-200" />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 6 }, (_, index) => (
               <div
                 className="h-56 animate-pulse rounded-xl bg-slate-200"
@@ -755,20 +754,20 @@ export default function BudgetsPage() {
         <>
           <section
             aria-label={`Résumé des budgets pour ${monthLabel}`}
-            className="grid grid-cols-1 items-center gap-5 rounded-xl bg-[#14213D] p-5 text-white shadow-sm sm:grid-cols-3 sm:p-6 xl:grid-cols-[1fr_1fr_1fr_auto]"
+            className="grid grid-cols-2 items-start gap-x-4 gap-y-5 rounded-xl bg-[#14213D] p-4 text-white shadow-sm md:grid-cols-2 md:gap-5 md:p-6 lg:grid-cols-3 xl:grid-cols-[1fr_1fr_1fr_auto]"
           >
-            <div className="border-b border-white/10 pb-4 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-5 xl:pr-8">
+            <div className="min-w-0 lg:border-r lg:border-white/10 lg:pr-4 xl:pr-8">
               <p className="text-xs text-slate-400">Budget total</p>
-              <p className="mt-2 text-xl font-bold sm:text-2xl">
+              <p className="mt-2 break-words text-lg font-bold sm:text-2xl">
                 {formatCurrency(totals.limit)}
               </p>
               <p className="mt-1 text-[11px] text-slate-400">
                 Pour {budgets.length} catégorie{budgets.length === 1 ? "" : "s"}
               </p>
             </div>
-            <div className="border-b border-white/10 pb-4 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-5 xl:pr-8">
+            <div className="min-w-0 lg:border-r lg:border-white/10 lg:pr-4 xl:pr-8">
               <p className="text-xs text-slate-400">Total dépensé</p>
-              <p className="mt-2 text-xl font-bold sm:text-2xl">
+              <p className="mt-2 break-words text-lg font-bold sm:text-2xl">
                 {formatCurrency(totals.spent)}
               </p>
               <p className="mt-1 text-[11px] text-slate-400">
@@ -778,10 +777,10 @@ export default function BudgetsPage() {
                 % du budget
               </p>
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-slate-400">Montant restant</p>
               <p
-                className={`mt-2 text-xl font-bold sm:text-2xl ${
+                className={`mt-2 break-words text-lg font-bold sm:text-2xl ${
                   remaining < 0 ? "text-[#E85D5D]" : "text-[#16A36A]"
                 }`}
               >
@@ -795,7 +794,7 @@ export default function BudgetsPage() {
                     })}% disponible`}
               </p>
             </div>
-            <div className="flex items-center justify-center sm:col-span-3 xl:col-span-1">
+            <div className="hidden items-center justify-center xl:flex xl:col-span-1">
               <div
                 aria-label={`${Math.round(usedPercentage)}% du budget total utilisé`}
                 aria-valuemax={100}
@@ -823,7 +822,7 @@ export default function BudgetsPage() {
           {budgets.length > 0 ? (
             <section
               aria-label={`Budgets de ${monthLabel}`}
-              className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+              className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3"
             >
               {budgets.map((budget, index) => (
                 <BudgetCard
@@ -883,6 +882,20 @@ export default function BudgetsPage() {
           selectedMonth={month}
           selectedYear={year}
         />
+      )}
+      {!formOpen && (
+        <button
+          aria-label="Créer un budget"
+          className="fixed bottom-6 right-6 z-30 inline-flex size-14 items-center justify-center rounded-full bg-[#16A36A] text-white shadow-lg shadow-emerald-900/25 transition hover:bg-[#118653] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#16A36A] disabled:cursor-not-allowed disabled:opacity-50 sm:hidden"
+          disabled={categories.length === 0}
+          onClick={() => {
+            setEditingBudget(null);
+            setFormOpen(true);
+          }}
+          type="button"
+        >
+          <Plus aria-hidden="true" size={27} />
+        </button>
       )}
     </div>
   );
