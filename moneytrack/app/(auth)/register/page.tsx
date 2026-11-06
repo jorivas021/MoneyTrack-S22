@@ -1,11 +1,10 @@
-
 "use client";
 
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import AuthLayout from "@/components/auth/auth-layout";
+import AuthLayout, { PasswordField, inputClass, labelClass } from "@/components/auth/auth-layout";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -69,18 +68,20 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout
-      eyebrow="COMMENCEZ DÈS AUJOURD’HUI"
+      eyebrow="Inscription"
       title="Commencez à mieux gérer votre argent."
-      description="Rejoignez MoneyTrack et reprenez le contrôle."
       benefits={[
         "Gratuit pour commencer",
         "Configuration en quelques minutes",
         "Données privées et sécurisées",
       ]}
+      notice="MoneyTrack ne vous demandera jamais votre mot de passe par e-mail ou par message."
+      formTitle="Créer votre compte"
+      formSubtitle="Gratuit, en moins d’une minute."
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="name" className="mb-2 block text-xs font-semibold text-[#14233f]">
+          <label htmlFor="name" className={labelClass}>
             Nom complet
           </label>
           <input
@@ -93,12 +94,12 @@ export default function RegisterPage() {
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Ex. Awa Diop"
-            className="w-full rounded-xl border border-slate-200 bg-[#fbfcfe] px-4 py-3 text-sm text-[#14233f] outline-none transition placeholder:text-slate-400 focus:border-[#16a36d] focus:bg-white focus:ring-4 focus:ring-[#16a36d]/10"
+            className={inputClass}
           />
         </div>
 
         <div>
-          <label htmlFor="email" className="mb-2 block text-xs font-semibold text-[#14233f]">
+          <label htmlFor="email" className={labelClass}>
             Adresse e-mail
           </label>
           <input
@@ -109,47 +110,45 @@ export default function RegisterPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="nom@exemple.com"
-            className="w-full rounded-xl border border-slate-200 bg-[#fbfcfe] px-4 py-3 text-sm text-[#14233f] outline-none transition placeholder:text-slate-400 focus:border-[#16a36d] focus:bg-white focus:ring-4 focus:ring-[#16a36d]/10"
+            className={inputClass}
           />
         </div>
 
-        <div>
-          <label htmlFor="password" className="mb-2 block text-xs font-semibold text-[#14233f]">
-            Mot de passe
-          </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={8}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="8 caractères minimum"
-            className="w-full rounded-xl border border-slate-200 bg-[#fbfcfe] px-4 py-3 text-sm text-[#14233f] outline-none transition placeholder:text-slate-400 focus:border-[#16a36d] focus:bg-white focus:ring-4 focus:ring-[#16a36d]/10"
-          />
-        </div>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="password" className={labelClass}>
+              Mot de passe
+            </label>
+            <PasswordField
+              id="password"
+              autoComplete="new-password"
+              required
+              minLength={8}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="8 caractères minimum"
+            />
+          </div>
 
-        <div>
-          <label htmlFor="confirmPassword" className="mb-2 block text-xs font-semibold text-[#14233f]">
-            Confirmer le mot de passe
-          </label>
-          <input
-            id="confirmPassword"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            placeholder="Confirmez votre mot de passe"
-            className="w-full rounded-xl border border-slate-200 bg-[#fbfcfe] px-4 py-3 text-sm text-[#14233f] outline-none transition placeholder:text-slate-400 focus:border-[#16a36d] focus:bg-white focus:ring-4 focus:ring-[#16a36d]/10"
-          />
+          <div>
+            <label htmlFor="confirmPassword" className={labelClass}>
+              Confirmer
+            </label>
+            <PasswordField
+              id="confirmPassword"
+              autoComplete="new-password"
+              required
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              placeholder="Répétez le mot de passe"
+            />
+          </div>
         </div>
 
         {error && (
           <p
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600"
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
           >
             {error}
           </p>
@@ -158,19 +157,13 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-[#16a36d] px-4 py-3.5 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 transition hover:bg-[#12885b] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-xl bg-[#16a36d] px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-[#12885b] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#16a36d]/30 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Création du compte..." : "Créer mon compte"}
         </button>
       </form>
 
-      <div className="my-5 flex items-center gap-3">
-        <div className="h-px flex-1 bg-slate-100" />
-        <span className="text-[10px] text-slate-400">OU</span>
-        <div className="h-px flex-1 bg-slate-100" />
-      </div>
-
-      <p className="text-center text-xs text-slate-500">
+      <p className="mt-6 border-t border-slate-200 pt-6 text-center text-sm text-slate-500">
         Tu as déjà un compte ?{" "}
         <Link
           href="/login"
