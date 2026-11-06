@@ -193,6 +193,7 @@ export default function DashboardShell({
       .join("")
       .slice(0, 2)
       .toUpperCase() || "U";
+  const isTransactionsPage = pathname === "/transactions";
   const isBudgetsPage = isActive("/budgets");
 
   return (
@@ -321,19 +322,17 @@ export default function DashboardShell({
                 <Menu aria-hidden="true" size={20} />
               )}
             </button>
-            <div
-              className={`flex min-w-0 max-w-xl flex-1 items-center gap-2 text-slate-400 sm:gap-3 ${
-                isBudgetsPage ? "hidden md:flex" : ""
-              }`}
-            >
-              <Search aria-hidden="true" className="shrink-0" size={18} />
-              <span className="truncate text-xs sm:text-sm">
-                Rechercher une transaction...
-              </span>
-              <kbd className="ml-auto hidden shrink-0 rounded border border-slate-200 px-2 py-1 text-[10px] md:block">
-                ⌘ K
-              </kbd>
-            </div>
+            {isTransactionsPage && (
+              <div className="flex min-w-0 max-w-xl flex-1 items-center gap-2 text-slate-400 sm:gap-3">
+                <Search aria-hidden="true" className="shrink-0" size={18} />
+                <span className="truncate text-xs sm:text-sm">
+                  Rechercher une transaction...
+                </span>
+                <kbd className="ml-auto hidden shrink-0 rounded border border-slate-200 px-2 py-1 text-[10px] md:block">
+                  ⌘ K
+                </kbd>
+              </div>
+            )}
             {isBudgetsPage && (
               <p className="min-w-0 flex-1 truncate text-base font-semibold text-[#14213d] md:hidden">
                 Budgets
