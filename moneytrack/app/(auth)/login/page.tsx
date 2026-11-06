@@ -1,11 +1,10 @@
-
 "use client";
 
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import AuthLayout from "@/components/auth/auth-layout";
+import AuthLayout, { PasswordField, inputClass, labelClass } from "@/components/auth/auth-layout";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,18 +43,20 @@ export default function LoginPage() {
 
   return (
     <AuthLayout
-      eyebrow="HEUREUX DE VOUS REVOIR"
-      title="Vos finances, simplement maîtrisées."
-      description="Retrouvez toutes vos finances en un seul endroit."
+      eyebrow="Connexion"
+      title="Content de vous revoir."
       benefits={[
         "Suivi clair des revenus et dépenses",
         "Budgets simples et personnalisés",
-        "Données privées et sécurisées",
+        "Toutes vos finances en un seul endroit",
       ]}
+      notice="Vos données restent privées et sécurisées. MoneyTrack ne les partage avec personne."
+      formTitle="Se connecter"
+      formSubtitle="Entrez votre e-mail et votre mot de passe."
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="email" className="mb-2 block text-xs font-semibold text-[#14233f]">
+          <label htmlFor="email" className={labelClass}>
             Adresse e-mail
           </label>
           <input
@@ -66,27 +67,25 @@ export default function LoginPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="nom@exemple.com"
-            className="w-full rounded-xl border border-slate-200 bg-[#fbfcfe] px-4 py-3.5 text-sm text-[#14233f] outline-none transition placeholder:text-slate-400 focus:border-[#16a36d] focus:bg-white focus:ring-4 focus:ring-[#16a36d]/10"
+            className={inputClass}
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="mb-2 block text-xs font-semibold text-[#14233f]">
+          <label htmlFor="password" className={labelClass}>
             Mot de passe
           </label>
-          <input
+          <PasswordField
             id="password"
-            type="password"
             autoComplete="current-password"
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Votre mot de passe"
-            className="w-full rounded-xl border border-slate-200 bg-[#fbfcfe] px-4 py-3.5 text-sm text-[#14233f] outline-none transition placeholder:text-slate-400 focus:border-[#16a36d] focus:bg-white focus:ring-4 focus:ring-[#16a36d]/10"
           />
         </div>
 
-        <div className="flex items-center justify-between gap-3 text-xs">
+        <div className="flex items-center justify-between gap-3 text-sm">
           <label className="flex cursor-pointer items-center gap-2 text-slate-600">
             <input
               type="checkbox"
@@ -105,7 +104,7 @@ export default function LoginPage() {
         {error && (
           <p
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600"
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
           >
             {error}
           </p>
@@ -114,19 +113,13 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-[#16a36d] px-4 py-3.5 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 transition hover:bg-[#12885b] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-xl bg-[#16a36d] px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-[#12885b] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#16a36d]/30 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Connexion..." : "Se connecter"}
         </button>
       </form>
 
-      <div className="my-6 flex items-center gap-3">
-        <div className="h-px flex-1 bg-slate-100" />
-        <span className="text-[10px] text-slate-400">OU</span>
-        <div className="h-px flex-1 bg-slate-100" />
-      </div>
-
-      <p className="text-center text-xs text-slate-500">
+      <p className="mt-6 border-t border-slate-200 pt-6 text-center text-sm text-slate-500">
         Pas encore de compte ?{" "}
         <Link
           href="/register"
