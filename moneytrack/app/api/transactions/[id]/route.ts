@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-guard";
+import {
+  BudgetLimitExceededError,
+  ensureExpenseWithinBudget,
+} from "@/features/transactions/services/transaction-service";
 
 const transactionSchema = z.object({
   categoryId: z.string().uuid(),
@@ -68,23 +72,43 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       );
     }
 
-    const transaction = await prisma.transaction.update({
-      where: { id },
-      data: {
-        categoryId: data.categoryId,
-        type: data.type,
-        amount: data.amount,
-        date: new Date(`${data.date}T00:00:00.000Z`),
-        description: data.description?.trim() || null,
-      },
-      include: { category: true },
+    const date = new Date(`${data.date}T00:00:00.000Z`);
+    const updatedTransaction = await prisma.$transaction(async (tx) => {
+      if (data.type === "EXPENSE") {
+        await ensureExpenseWithinBudget(tx, {
+          userId: userId!,
+          categoryId: data.categoryId,
+          amount: data.amount,
+          date,
+          excludingTransactionId: id,
+        });
+      }
+
+      return tx.transaction.update({
+        where: { id },
+        data: {
+          categoryId: data.categoryId,
+          type: data.type,
+          amount: data.amount,
+          date,
+          description: data.description?.trim() || null,
+        },
+        include: { category: true },
+      });
     });
 
     return NextResponse.json({
       message: "Transaction modifiée.",
-      transaction,
+      transaction: updatedTransaction,
     });
   } catch (error) {
+    if (error instanceof BudgetLimitExceededError) {
+      return NextResponse.json(
+        { error: error.message, code: "BUDGET_LIMIT_REACHED" },
+        { status: 409 }
+      );
+    }
+
     console.error("Erreur modification transaction :", error);
 
     return NextResponse.json(

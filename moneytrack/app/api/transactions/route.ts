@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-guard";
+import {
+  BudgetLimitExceededError,
+  ensureExpenseWithinBudget,
+} from "@/features/transactions/services/transaction-service";
 
 const transactionSchema = z.object({
   categoryId: z.string().uuid(),
@@ -63,23 +67,42 @@ export async function POST(request: Request) {
       );
     }
 
-    const transaction = await prisma.transaction.create({
-      data: {
-        userId: userId!,
-        categoryId: data.categoryId,
-        type: data.type,
-        amount: data.amount,
-        date: new Date(`${data.date}T00:00:00.000Z`),
-        description: data.description,
-      },
-      include: { category: true },
+    const date = new Date(`${data.date}T00:00:00.000Z`);
+    const createdTransaction = await prisma.$transaction(async (tx) => {
+      if (data.type === "EXPENSE") {
+        await ensureExpenseWithinBudget(tx, {
+          userId: userId!,
+          categoryId: data.categoryId,
+          amount: data.amount,
+          date,
+        });
+      }
+
+      return tx.transaction.create({
+        data: {
+          userId: userId!,
+          categoryId: data.categoryId,
+          type: data.type,
+          amount: data.amount,
+          date,
+          description: data.description,
+        },
+        include: { category: true },
+      });
     });
 
     return NextResponse.json(
-      { message: "Transaction créée.", transaction },
+      { message: "Transaction créée.", transaction: createdTransaction },
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof BudgetLimitExceededError) {
+      return NextResponse.json(
+        { error: error.message, code: "BUDGET_LIMIT_REACHED" },
+        { status: 409 }
+      );
+    }
+
     console.error("Erreur transaction :", error);
 
     return NextResponse.json(

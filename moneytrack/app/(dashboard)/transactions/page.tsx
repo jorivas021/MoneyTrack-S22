@@ -672,7 +672,10 @@ export default function TransactionsPage() {
               </div>
 
               {error && (
-                <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                <p
+                  className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600"
+                  role="alert"
+                >
                   {error}
                 </p>
               )}
