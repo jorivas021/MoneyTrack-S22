@@ -15,11 +15,11 @@ Le groupe est initialement composé de cinq membres. Cependant, seuls trois memb
 
 ### Membres ayant collaboré
 
-| Membre | Fonction |
-|---|---|
-| **NSANGOU Djenna** | Team Lead |
-| **BOKITOMO José Gloire** | Repository Admin |
-| **IKEKE NKOUMANDO Salomon Prestige** | Développeur Fonctionnalités |
+| Membre | Fonction | Compte GitHub |
+|---|---|---|
+| **NSANGOU Djenna** | Team Lead | [@DIASSIVI-sys](https://github.com/DIASSIVI-sys) |
+| **BOKITOMO José Gloire** | Repository Admin | [@jorivas021](https://github.com/jorivas021) |
+| **IKEKE NKOUMANDO Salomon Prestige** | Développeur Fonctionnalités | [@INSP18](https://github.com/INSP18) |
 
 ## Répartition des tâches et organisation du travail
 
