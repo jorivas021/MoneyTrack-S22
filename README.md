@@ -220,6 +220,29 @@ MoneyTrack est déployé sur **Vercel** et utilise une base de données PostgreS
 
 **Lien live :** https://moneytrack-s22.vercel.app/
 
+
+## Performances mobiles
+
+MoneyTrack a été évalué avec Google PageSpeed Insights sur mobile.
+
+| Indicateur | Résultat |
+|---|---:|
+| Score de performance mobile | **100/100** |
+| Score d'Accessibilité | **94/100** |
+| Score minimum exigé | 80/100 |
+| Objectif atteint | Oui |
+
+Le projet dépasse largement le seuil minimum de performance demandé.
+
+### Capture du résultat
+
+![Résultat Google PageSpeed Insights - Mobile](docs/screenshots/tests.png)
+
+**Outil :** [Google PageSpeed Insights](https://pagespeed.web.dev/)
+
+**Site testé :** [MoneyTrack](https://moneytrack-s22.vercel.app/)
+
+
 ## Statut du projet
 
 Le projet dispose de ses principales fonctionnalités de gestion financière, de son système d'authentification, de ses interfaces publiques et privées ainsi que de son environnement de déploiement.
